@@ -5,10 +5,15 @@ require("dotenv").config()
 
 const app = express()
 
-// Enhanced CORS configuration
+// Enhanced CORS configuration - Updated with new frontend URL
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "https://pinpay-frontend.vercel.app", // ✅ Your new frontend URL
+      "https://pinpay-znin.vercel.app/",
+      "http://localhost:5173",
+      "http://localhost:3000",
+    ],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
