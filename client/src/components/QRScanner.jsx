@@ -703,6 +703,10 @@ const QRScanner = () => {
             ⌨️ Manual Input
           </button>
         )}
+
+        <button className="control-btn nfc-writer-btn" onClick={() => navigate("/nfc-writer")}>
+          📱 NFC Writer Tool
+        </button>
       </div>
 
       {/* Product Added Success */}

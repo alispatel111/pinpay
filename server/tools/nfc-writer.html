@@ -174,6 +174,22 @@
             font-family: monospace;
             word-break: break-all;
         }
+
+        .config-section {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
@@ -184,6 +200,18 @@
         </div>
 
         <div class="content">
+            <!-- Configuration -->
+            <div class="section">
+                <h2>⚙️ Configuration</h2>
+                <div class="config-section">
+                    <label for="backend-url"><strong>Backend URL:</strong></label>
+                    <input type="text" id="backend-url" class="config-input" value="https://pinpay-backend.vercel.app" placeholder="https://your-backend.vercel.app">
+                    
+                    <label for="frontend-url"><strong>Frontend URL:</strong></label>
+                    <input type="text" id="frontend-url" class="config-input" value="https://pinpay-frontend.vercel.app" placeholder="https://your-frontend.vercel.app">
+                </div>
+            </div>
+
             <!-- NFC Support Check -->
             <div class="section">
                 <h2>🔍 NFC Support</h2>
@@ -218,6 +246,7 @@
                 <h2>📋 Instructions</h2>
                 <div class="nfc-info">
                     <ol>
+                        <li>Update the Backend and Frontend URLs above</li>
                         <li>Click "Load Products from Database" to fetch your products</li>
                         <li>Select a product from the list</li>
                         <li>Click "Write to NFC Tag"</li>
@@ -252,12 +281,18 @@
         async function loadProducts() {
             const button = document.getElementById('load-products');
             const container = document.getElementById('products-container');
+            const backendUrl = document.getElementById('backend-url').value;
             
+            if (!backendUrl) {
+                container.innerHTML = '<div class="status error">❌ Please enter Backend URL</div>';
+                return;
+            }
+
             button.innerHTML = '<span class="loading"></span>Loading...';
             button.disabled = true;
 
             try {
-                const response = await fetch('http://localhost:5000/api/products');
+                const response = await fetch(`${backendUrl}/api/products`);
                 const data = await response.json();
                 
                 if (data.success && data.data.length > 0) {
@@ -305,6 +340,7 @@
         // Select product
         function selectProduct(product) {
             selectedProduct = product;
+            const frontendUrl = document.getElementById('frontend-url').value;
             
             // Update UI
             document.querySelectorAll('.product-item').forEach(item => {
@@ -323,7 +359,7 @@
                 <div class="product-desc">${product.description}</div>
             `;
             
-            const productUrl = `http://localhost:5173/product/${product._id}`;
+            const productUrl = `${frontendUrl}/product/${product._id}`;
             urlDiv.textContent = productUrl;
             
             selectedSection.style.display = 'block';
@@ -341,13 +377,14 @@
 
             const button = document.getElementById('write-nfc');
             const statusDiv = document.getElementById('write-status');
+            const frontendUrl = document.getElementById('frontend-url').value;
             
             button.innerHTML = '<span class="loading"></span>Writing...';
             button.disabled = true;
 
             try {
                 const ndef = new NDEFReader();
-                const productUrl = `http://localhost:5173/product/${selectedProduct._id}`;
+                const productUrl = `${frontendUrl}/product/${selectedProduct._id}`;
                 
                 await ndef.write({
                     records: [{
