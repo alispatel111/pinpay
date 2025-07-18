@@ -8,6 +8,7 @@ import QRScanner from "./components/QRScanner"
 import Checkout from "./components/Checkout"
 import ProductHandler from "./components/ProductHandler"
 import Cart from "./components/Cart"
+import NFCWriter from "./components/NFCWriter"
 import "./App.css"
 
 const App = () => {
@@ -36,9 +37,7 @@ const App = () => {
       return
     }
 
-    setCart((prevCart) =>
-      prevCart.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)),
-    )
+    setCart((prevCart) => prevCart.map((item) => (item.id === productId ? { ...item, quantity: newQuantity } : item)))
   }
 
   const removeFromCart = (productId) => {
@@ -76,6 +75,7 @@ const App = () => {
       />
       <Route path="/invoice/:id" element={<InvoicePage orderId={orderId} />} />
       <Route path="/product/:id" element={<ProductHandler />} />
+      <Route path="/nfc-writer" element={<NFCWriter />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   )
