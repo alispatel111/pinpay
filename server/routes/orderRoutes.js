@@ -1,36 +1,64 @@
-const express = require('express');
-const router = express.Router();
-const Order = require('../models/Order');
-const PDFDocument = require('pdfkit');
-const fs = require('fs');
-const path = require('path');
+const express = require("express")
+const router = express.Router()
+const Order = require("../models/Order")
 
-// Create order
-router.post('/checkout', async (req, res) => {
-  const { items, totalAmount } = req.body;
-  const newOrder = new Order({ items, totalAmount, paid: true });
-  await newOrder.save();
+// Create order - simplified for Vercel deployment
+router.post("/checkout", async (req, res) => {
+  try {
+    const { items, totalAmount } = req.body
 
-  const invoicePath = path.join(__dirname, `../public/invoices/invoice_${newOrder._id}.pdf`);
-  const doc = new PDFDocument();
-  doc.pipe(fs.createWriteStream(invoicePath));
+    console.log("Creating order:", { itemCount: items?.length, totalAmount })
 
-  doc.fontSize(20).text('Invoice', { align: 'center' });
-  doc.text(`Order ID: ${newOrder._id}`);
-  doc.text(`Date: ${new Date().toLocaleString()}`);
-  doc.text(`Total Amount: ₹${totalAmount}\n\n`);
-  doc.text('Items:\n');
+    const newOrder = new Order({
+      items,
+      totalAmount,
+      paid: true,
+    })
 
-  newOrder.items.forEach((item) => {
-    doc.text(`${item.name} x ${item.quantity} = ₹${item.price * item.quantity}`);
-  });
+    await newOrder.save()
+    console.log("Order created:", newOrder._id)
 
-  doc.end();
+    // For now, just return success without PDF generation
+    // PDF generation can be added later with proper file storage
+    res.json({
+      success: true,
+      message: "Order placed successfully",
+      orderId: newOrder._id,
+      // invoiceUrl: `/invoices/invoice_${newOrder._id}.pdf` // Disabled for now
+    })
+  } catch (error) {
+    console.error("Order creation error:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error creating order",
+      error: error.message,
+    })
+  }
+})
 
-  res.json({
-    message: 'Order placed successfully',
-    invoiceUrl: `/invoices/invoice_${newOrder._id}.pdf`
-  });
-});
+// Get order by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      })
+    }
 
-module.exports = router;
+    res.json({
+      success: true,
+      data: order,
+    })
+  } catch (error) {
+    console.error("Order fetch error:", error)
+    res.status(500).json({
+      success: false,
+      message: "Error fetching order",
+      error: error.message,
+    })
+  }
+})
+
+module.exports = router
