@@ -1,0 +1,46 @@
+.invoice-wrapper {
+  padding: 2rem;
+  color: white;
+}
+
+.invoice-box {
+  background-color: #1f1f1f;
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 600px;
+  margin: auto;
+}
+
+.invoice-box table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.invoice-box th,
+.invoice-box td {
+  border: 1px solid #555;
+  padding: 10px;
+  text-align: left;
+}
+
+.invoice-box th {
+  background-color: #2c2c2c;
+}
+
+.total td {
+  font-weight: bold;
+}
+
+.download-btn {
+  margin-top: 20px;
+  background-color: #3498db;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}

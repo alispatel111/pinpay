@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFC Tag Writer - Pin & Pay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+
+        .btn:hover {
+            background: #45a049;
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .product-list {
+            display: grid;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .product-item {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .product-item:hover {
+            border-color: #4CAF50;
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+        }
+
+        .product-item.selected {
+            border-color: #4CAF50;
+            background: #f8fff8;
+        }
+
+        .product-name {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-price {
+            color: #4CAF50;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .product-desc {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .status {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-weight: bold;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .nfc-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4CAF50;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .url-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-family: monospace;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📱 NFC Tag Writer</h1>
+            <p>Write product URLs to NFC tags for Pin & Pay</p>
+        </div>
+
+        <div class="content">
+            <!-- NFC Support Check -->
+            <div class="section">
+                <h2>🔍 NFC Support</h2>
+                <div id="nfc-support" class="status info">
+                    Checking NFC support...
+                </div>
+            </div>
+
+            <!-- Load Products -->
+            <div class="section">
+                <h2>📦 Load Products</h2>
+                <button id="load-products" class="btn">Load Products from Database</button>
+                <div id="products-container"></div>
+            </div>
+
+            <!-- Selected Product -->
+            <div class="section" id="selected-section" style="display: none;">
+                <h2>✅ Selected Product</h2>
+                <div id="selected-product"></div>
+                <div class="url-display" id="product-url"></div>
+            </div>
+
+            <!-- Write NFC -->
+            <div class="section">
+                <h2>📝 Write NFC Tag</h2>
+                <button id="write-nfc" class="btn" disabled>Write to NFC Tag</button>
+                <div id="write-status"></div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="section">
+                <h2>📋 Instructions</h2>
+                <div class="nfc-info">
+                    <ol>
+                        <li>Click "Load Products from Database" to fetch your products</li>
+                        <li>Select a product from the list</li>
+                        <li>Click "Write to NFC Tag"</li>
+                        <li>Touch your NFC tag to the device when prompted</li>
+                        <li>Test the tag by tapping it with your phone</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedProduct = null;
+        let products = [];
+
+        // Check NFC support
+        function checkNFCSupport() {
+            const supportDiv = document.getElementById('nfc-support');
+            
+            if ('NDEFReader' in window) {
+                supportDiv.className = 'status success';
+                supportDiv.textContent = '✅ NFC is supported on this device!';
+                return true;
+            } else {
+                supportDiv.className = 'status error';
+                supportDiv.textContent = '❌ NFC is not supported on this device/browser. Please use Chrome on Android.';
+                return false;
+            }
+        }
+
+        // Load products from database
+        async function loadProducts() {
+            const button = document.getElementById('load-products');
+            const container = document.getElementById('products-container');
+            
+            button.innerHTML = '<span class="loading"></span>Loading...';
+            button.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/products');
+                const data = await response.json();
+                
+                if (data.success && data.data.length > 0) {
+                    products = data.data;
+                    displayProducts(products);
+                    
+                    container.innerHTML = '<div class="status success">✅ Loaded ' + products.length + ' products successfully!</div>' + container.innerHTML;
+                } else {
+                    container.innerHTML = '<div class="status error">❌ No products found in database.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading products:', error);
+                container.innerHTML = '<div class="status error">❌ Error loading products: ' + error.message + '</div>';
+            } finally {
+                button.innerHTML = 'Load Products from Database';
+                button.disabled = false;
+            }
+        }
+
+        // Display products
+        function displayProducts(products) {
+            const container = document.getElementById('products-container');
+            
+            const productList = document.createElement('div');
+            productList.className = 'product-list';
+            
+            products.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.className = 'product-item';
+                productDiv.onclick = () => selectProduct(product);
+                
+                productDiv.innerHTML = `
+                    <div class="product-name">${product.name}</div>
+                    <div class="product-price">₹${product.price}</div>
+                    <div class="product-desc">${product.description}</div>
+                    <div style="font-size: 0.8rem; color: #999; margin-top: 0.5rem;">ID: ${product._id}</div>
+                `;
+                
+                productList.appendChild(productDiv);
+            });
+            
+            container.appendChild(productList);
+        }
+
+        // Select product
+        function selectProduct(product) {
+            selectedProduct = product;
+            
+            // Update UI
+            document.querySelectorAll('.product-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            event.target.closest('.product-item').classList.add('selected');
+            
+            // Show selected product
+            const selectedSection = document.getElementById('selected-section');
+            const selectedDiv = document.getElementById('selected-product');
+            const urlDiv = document.getElementById('product-url');
+            
+            selectedDiv.innerHTML = `
+                <div class="product-name">${product.name}</div>
+                <div class="product-price">₹${product.price}</div>
+                <div class="product-desc">${product.description}</div>
+            `;
+            
+            const productUrl = `http://localhost:5173/product/${product._id}`;
+            urlDiv.textContent = productUrl;
+            
+            selectedSection.style.display = 'block';
+            
+            // Enable write button
+            document.getElementById('write-nfc').disabled = false;
+        }
+
+        // Write NFC tag
+        async function writeNFC() {
+            if (!selectedProduct) {
+                alert('Please select a product first!');
+                return;
+            }
+
+            const button = document.getElementById('write-nfc');
+            const statusDiv = document.getElementById('write-status');
+            
+            button.innerHTML = '<span class="loading"></span>Writing...';
+            button.disabled = true;
+
+            try {
+                const ndef = new NDEFReader();
+                const productUrl = `http://localhost:5173/product/${selectedProduct._id}`;
+                
+                await ndef.write({
+                    records: [{
+                        recordType: "url",
+                        data: productUrl
+                    }]
+                });
+
+                statusDiv.innerHTML = '<div class="status success">✅ NFC tag written successfully! Product: ' + selectedProduct.name + '</div>';
+                
+            } catch (error) {
+                console.error('NFC Write Error:', error);
+                statusDiv.innerHTML = '<div class="status error">❌ Error writing NFC tag: ' + error.message + '</div>';
+            } finally {
+                button.innerHTML = 'Write to NFC Tag';
+                button.disabled = false;
+            }
+        }
+
+        // Event listeners
+        document.getElementById('load-products').addEventListener('click', loadProducts);
+        document.getElementById('write-nfc').addEventListener('click', writeNFC);
+
+        // Initialize
+        checkNFCSupport();
+    </script>
+</body>
+</html>
