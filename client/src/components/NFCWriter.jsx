@@ -11,7 +11,7 @@ const NFCWriter = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [status, setStatus] = useState("")
   const [backendUrl, setBackendUrl] = useState("https://pinpay-znin.vercel.app")
-  const [frontendUrl, setFrontendUrl] = useState("https://pinpay-red.vercel.app")
+  const [frontendUrl, setFrontendUrl] = useState("https://pinpay-frontend.vercel.app")
   const navigate = useNavigate()
 
   useState(() => {
